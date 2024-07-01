@@ -12,6 +12,10 @@ import {
 import { AppHeader, IngredientDetails, OrderInfo, Modal } from '@components';
 import { useNavigate, useLocation } from 'react-router';
 import { Routes, Route } from 'react-router-dom';
+import { useDispatch } from '../../services/store';
+import { useEffect } from 'react';
+import { loadIngredients } from '../../slices/ingredientsSlice';
+
 import '../../index.css';
 import styles from './app.module.css';
 
@@ -19,8 +23,12 @@ const App = () => {
   const location = useLocation();
   const backgroundLocation = location.state?.background;
 
-  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(loadIngredients());
+  }, []);
 
+  const navigate = useNavigate();
   const modalClose = () => {
     navigate(-1);
   };
