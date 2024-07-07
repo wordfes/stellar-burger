@@ -1,15 +1,17 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { TOrder } from '@utils-types';
-import { getOrderByNumberApi } from '../utils/burger-api';
+import { getOrderByNumberApi, orderBurgerApi } from '@api';
 
 interface TOrdersState {
   currentOrder: TOrder | null;
+  modalOrder: TOrder | null;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: TOrdersState = {
   currentOrder: null,
+  modalOrder: null,
   loading: false,
   error: null
 };
@@ -17,9 +19,15 @@ const initialState: TOrdersState = {
 export const ordersSlice = createSlice({
   name: 'orders',
   initialState,
-  reducers: {},
+  reducers: {
+    clearModalOrder: (state) => {
+      state.modalOrder = null;
+    }
+  },
   selectors: {
-    getCurrentOrder: (state) => state.currentOrder
+    getCurrentOrder: (state) => state.currentOrder,
+    getOrderRequest: (state) => state.loading,
+    getModalOrder: (state) => state.modalOrder
   },
   extraReducers: (builder) => {
     builder
@@ -37,6 +45,20 @@ export const ordersSlice = createSlice({
         state.loading = false;
         state.currentOrder = action.payload.orders[0];
         state.error = null;
+      })
+
+      .addCase(placeNewOrder.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(placeNewOrder.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Не удалось разместить заказ';
+      })
+      .addCase(placeNewOrder.fulfilled, (state, action) => {
+        state.loading = false;
+        state.modalOrder = action.payload.order;
+        state.error = null;
       });
   }
 });
@@ -46,4 +68,11 @@ export const loadOrderById = createAsyncThunk(
   async (id: number) => getOrderByNumberApi(id)
 );
 
-export const { getCurrentOrder } = ordersSlice.selectors;
+export const placeNewOrder = createAsyncThunk(
+  'order/createOrder',
+  orderBurgerApi
+);
+
+export const { clearModalOrder } = ordersSlice.actions;
+export const { getCurrentOrder, getOrderRequest, getModalOrder } =
+  ordersSlice.selectors;

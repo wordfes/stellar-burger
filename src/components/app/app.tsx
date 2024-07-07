@@ -14,10 +14,16 @@ import { useNavigate, useLocation } from 'react-router';
 import { Routes, Route } from 'react-router-dom';
 import { useDispatch } from '../../services/store';
 import { useEffect } from 'react';
+import { ProtectedRoute } from '../protected-route';
 import { loadIngredients } from '../../slices/ingredientsSlice';
+import { loadUser, authCheck } from '../../slices/userSlice';
 
 import '../../index.css';
 import styles from './app.module.css';
+
+interface RouteParams {
+  number: string;
+}
 
 const App = () => {
   const location = useLocation();
@@ -27,6 +33,9 @@ const App = () => {
   useEffect(() => {
     dispatch(loadIngredients());
   }, []);
+  useEffect(() => {
+    dispatch(loadUser()).finally(() => dispatch(authCheck()));
+  }, [dispatch, authCheck]);
 
   const navigate = useNavigate();
   const modalClose = () => {
@@ -40,15 +49,64 @@ const App = () => {
         <Route path='*' element={<NotFound404 />} />
         <Route path='/' element={<ConstructorPage />} />
         <Route path='/feed' element={<Feed />} />
-        <Route path='/login' element={<Login />} />
-        <Route path='/register' element={<Register />} />
-        <Route path='/forgot-password' element={<ForgotPassword />} />
-        <Route path='/reset-password' element={<ResetPassword />} />
-        <Route path='/profile' element={<Profile />} />
-        <Route path='/profile/orders' element={<ProfileOrders />} />
+        <Route
+          path='/login'
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <Login />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/register'
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <Register />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/forgot-password'
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <ForgotPassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/reset-password'
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <ResetPassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/profile'
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/profile/orders'
+          element={
+            <ProtectedRoute>
+              <ProfileOrders />
+            </ProtectedRoute>
+          }
+        />
         <Route path='/feed/:number' element={<OrderInfo />} />
         <Route path='/ingredients/:id' element={<IngredientDetails />} />
-        <Route path='/profile/orders/:number' element={<OrderInfo />} />
+        <Route
+          path='/profile/orders/:number'
+          element={
+            <ProtectedRoute>
+              <OrderInfo />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
 
       {backgroundLocation && (
@@ -56,7 +114,7 @@ const App = () => {
           <Route
             path='/feed/:number'
             element={
-              <Modal title='Заказ' onClose={modalClose}>
+              <Modal title='Детали заказа' onClose={modalClose}>
                 <OrderInfo />
               </Modal>
             }
@@ -64,7 +122,7 @@ const App = () => {
           <Route
             path='/ingredients/:id'
             element={
-              <Modal title='Описание ингредиента' onClose={modalClose}>
+              <Modal title='Детали ингредиента' onClose={modalClose}>
                 <IngredientDetails />
               </Modal>
             }
@@ -72,9 +130,11 @@ const App = () => {
           <Route
             path='/profile/orders/:number'
             element={
-              <Modal title='Заказ' onClose={modalClose}>
-                <OrderInfo />
-              </Modal>
+              <ProtectedRoute>
+                <Modal title='Детали заказа' onClose={modalClose}>
+                  <OrderInfo />
+                </Modal>
+              </ProtectedRoute>
             }
           />
         </Routes>

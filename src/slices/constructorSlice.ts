@@ -39,9 +39,7 @@ export const constructorSlice = createSlice({
       ingredients.splice(to, 0, ingredients.splice(from, 1)[0]);
       state.ingredients = ingredients;
     },
-    clearIngredients: (state) => {
-      state = initialState;
-    }
+    clearIngredients: (state) => (state = initialState)
   },
 
   selectors: {
